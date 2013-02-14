@@ -102,8 +102,8 @@ class DSPhex():
             f.write(source)
             f.close()
         except:
-            print u"Error",
-            print u"Ошибка сохранения файла прошивки:", name
+            print u"Error:",
+            print u"Ошибка сохранения файла прошивки:", name, type(name)
             raise IOError
         print u'Файл сохранен успешно', name
         
