@@ -187,7 +187,7 @@ class DSPhex():
             return val
 
         def calcFreq(val):
-            val = val = "%x0" % val
+            val = val = "%02x0" % val
             if len(val) < 4:
                 val = '0' + val
             val = val[2:] + val[:2]
