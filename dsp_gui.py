@@ -89,6 +89,9 @@ class DSPGui(QtGui.QMainWindow):
         if name is None:
             name = QtGui.QFileDialog.getSaveFileName(self, u"Сохранить как...",
                                         filter="HEX Files (*.hex)")
+            # выход, в случае отсутствия имени
+            if not name:
+                return
         
         self.fileSave(name=name)
         
