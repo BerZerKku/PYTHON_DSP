@@ -8,7 +8,7 @@ import py2exe
 sys.path.append("D:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT")
 data_files = [("Microsoft.VC90.CRT", glob(r'D:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\*.*'))]
 # подключение своих файлов
-mydata_files = ('', ["Apps.png", "P400.dat"])
+mydata_files = ('', ["Apps.png", "P400.dat", "RZSK_1.dat", "RZSK_2.dat"])
 data_files.append(mydata_files)
 
 includes = ["sip"]
