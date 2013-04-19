@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "dsp_gui.py", line 90, in fileSave
-  File "dsp.pyo", line 144, in loadSourceHEX
-IOError
