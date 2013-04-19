@@ -10,7 +10,7 @@ class DSPhex():
             num - номер аппарата, 1..3
             source - файл исходной прошивки
         '''
-        self.DEVICE = ('P400', 'K400', 'RZSK')
+        self.DEVICE = ('P400', 'RZSK', 'K400')
         
         self.setFrequence(freq)
         self.setNumber(num)
@@ -19,7 +19,7 @@ class DSPhex():
     def setFrequence(self, freq):
         ''' (self, str/number) -> int
 
-            Установка частоты [10, 1000] кГц. Может быть задано строкой
+            Установка частоты [16, 1000] кГц. Может быть задано строкой
             или числом.
             Возвращает установленную частоту.
         '''
@@ -30,9 +30,9 @@ class DSPhex():
             print "Error:",
             print u"Неверный тип переменной",  freq, type(freq)
             raise TypeError
-        if freq < 10 or freq > 1000:     
+        if freq < 16 or freq > 1000:     
             print "Error:",
-            print u"Полученная частота выходит за диапазон [10, 1000]кГц: ",freq
+            print u"Полученная частота выходит за диапазон [16, 1000]кГц: ",freq
             raise ValueError
         self._freq = freq
 
@@ -94,9 +94,11 @@ class DSPhex():
         # формирование имени файла
         if name is None: 
             name = "%s_%03d_%d.hex" % (device, freq, num)
-
+              
         if device == 'P400':
             source = self.newP400()
+        elif device == 'RZSK':
+            source = self.newRZSK()
         try:
             f = open(name, 'wb')
             f.write(source)
@@ -121,11 +123,16 @@ class DSPhex():
         if name is None:
             if device is None:
                 device = self._device
-            if device in self.DEVICE:
-                name = device + '.dat'
+        
+        if device in self.DEVICE:
+            if device == 'RZSK':
+                # для упрощения кода в РЗСК загружается исходник 1 или 2 аппарата
+                name = device + '_' + str(self._num) + '.dat'
             else:
-                print u"Error: ",
-                print u"Неверно задан тип аппарата: ", device
+                name = device + '.dat'
+        else:
+            print u"Error: ",
+            print u"Неверно задан тип аппарата: ", device
         
         try:
             f = open(name, 'rb')
@@ -222,6 +229,90 @@ class DSPhex():
 
         return source
                 
+    def newRZSK(self, source=None, freq=None, num=None):
+        ''' (dsphex, str, int, int)
+        
+            Формирование нового файла прошивки для РЗСК.
+            На вход можно подать прошивику, по умолчанию будет использоваться
+            загруженный ранее(для 1 и 2 номера разные). 
+            Возвращает содержимое нового файла прошивки.
+        '''
+        
+        def calcCrc1(freq, num):
+            ''' (int, int) -> int
+            
+                Возвращает контрольную сумму в зависимости от номера аппарата
+                и частоты.
+            '''
+            
+            if (num == 1):
+                crc = -39
+            elif (num == 2):
+                crc = 38
+            inc = 32
+            
+            crc += inc * freq 
+            return crc
+        
+        def calcCrc2(freq, num):
+            ''' (int, int) -> int
+            
+                Возвращает контрольную сумму в зависимости от номера аппарата
+                и частоты.
+            '''
+            
+            if (num == 1):
+                crc = 9
+            elif (num == 2):
+                crc = -10    
+            inc = 8
+            
+            crc += inc * freq
+            return crc
+        
+        def calcFreq(freq):
+            ''' (int) -> int
+                
+                Возвращает число соовтетствующее заданной частоте.
+            '''
+            
+            val = 0
+            inc = 16
+            
+            val += inc * freq
+            return val
+        
+        if freq is None:
+            freq = self._freq
+
+        if num is None:
+            num = self._num
+
+        if source is None:
+            source = self._source
+        
+         # строка '1BD0' зависит от частоты
+        fr = my_func.intToStrHex(calcFreq(freq))
+        fr = fr[2:] + fr[:2]
+        fr = fr.decode('hex')
+        adr = my_func.strHexToInt('4DE6')
+        source = source[:adr] + fr + source[adr + len(fr):]
+        
+        crc1 = my_func.intToStrHex(calcCrc1(freq, num))
+        crc1 = crc1[2:] + crc1[:2]
+        crc1 = crc1.decode('hex')
+        adr = my_func.strHexToInt('7C1E')
+        source = source[:adr] + crc1 + source[adr + len(crc1):]
+        
+        crc2 = my_func.intToStrHex(calcCrc2(freq, num))
+        crc2 = crc2[2:] + crc2[:2]
+        crc2 = crc2.decode('hex')
+        adr = my_func.strHexToInt('7C22')
+        source = source[:adr] + crc2 + source[adr + len(crc2):]
+        
+        return source
+              
+        
 if __name__ == '__main__':
     ''' Создание файла прошивки с заданной частотой и номером. По умолчанию
         будет создана прошивка 100кГц-1

@@ -45,15 +45,15 @@ class DSPGui(QtGui.QMainWindow):
         
         # 
         self.eFreq = QtGui.QSpinBox()
-        self.eFreq.setRange(10, 1000)
+        self.eFreq.setRange(16, 1000)
         self.eNum = QtGui.QSpinBox()
         self.eNum.setRange(1, 2)
         
         #
         self.eDevice = QtGui.QComboBox()
         tHex = dsp.DSPhex()
-        self.eDevice.addItems(['P400'])
-        self.eDevice.setDisabled(True)
+        self.eDevice.addItems(['P400', 'RZSK'])
+        self.eDevice.setDisabled(False)
         
         # 
         grid = QtGui.QGridLayout(self.mainWidget) 
@@ -77,15 +77,24 @@ class DSPGui(QtGui.QMainWindow):
                   (screen.height() - size.height()) / 2)
         
     def fileSave(self, checked=False, name=None):
+        ''' (dspgui, bool, str) -> None
+        
+            Сохранение файла прошивки. Если имя name не задано, оно будет
+            сгенерировано.
+        '''
         tdsp = dsp.DSPhex()
-        tdsp.loadSourceHEX()
         tdsp.setFrequence(self.eFreq.value())
         tdsp.setNumber(self.eNum.value())
+        self.eDevice.currentText()
         tdsp.setDevice(str(self.eDevice.currentText()))
+        tdsp.loadSourceHEX()
         tdsp.saveNewHEX(name=name)
         
     def fileSaveAs(self, checked=False, name=None):
-        print name, type(name)
+        ''' (dspgui, bool, str) -> None
+        
+            Выбор пути и имени файла прошивки, если на входе name не задано.
+        '''
         if name is None:
             name = QtGui.QFileDialog.getSaveFileName(self, u"Сохранить как...",
                                         filter="HEX Files (*.hex)")
