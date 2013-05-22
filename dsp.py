@@ -176,6 +176,8 @@ class DSPhex():
                 print u"Значения кроме 1 и 2 не принимаются:", num, type(num)
                 raise ValueError
             val = my_func.intToStrHex(val)
+            while len(val) < 4:
+                val = '0' + val
             val = val[2:] + val[:2]
             return val
 
@@ -190,6 +192,8 @@ class DSPhex():
                 print u"Значения кроме 1 и 2 не принимаются:", num, type(num) 
                 raise ValueError
             val = my_func.intToStrHex(val)
+            while len(val) < 4:
+                val = '0' + val
             val = val[2:] + val[:2]
             return val
 
