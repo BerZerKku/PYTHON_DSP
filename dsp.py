@@ -2,6 +2,8 @@
 import sys
 import my_func
 
+VERSION = "1.02"
+
 class DSPhex():
     def __init__(self, freq=100, num=1, device='P400'):
         ''' (int, int, str) -> None
@@ -14,8 +16,11 @@ class DSPhex():
         
         self.setFrequence(freq)
         self.setNumber(num)
-        self.setDevice(device)    
-    
+        self.setDevice(device)  
+        
+    def __str__(self):
+        return VERSION
+                
     def setFrequence(self, freq):
         ''' (self, str/number) -> int
 
@@ -315,7 +320,6 @@ class DSPhex():
         source = source[:adr] + crc2 + source[adr + len(crc2):]
         
         return source
-              
         
 if __name__ == '__main__':
     ''' Создание файла прошивки с заданной частотой и номером. По умолчанию
@@ -337,7 +341,7 @@ if __name__ == '__main__':
             dspHEX.setNumber(arg[2:])
         elif arg[:2] == '-d':
             dspHEX.setDevice(arg[2:])
-
+    
     try:
         dspHEX.loadSourceHEX()
     except:

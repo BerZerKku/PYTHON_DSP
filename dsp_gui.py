@@ -30,7 +30,9 @@ class DSPGui(QtGui.QMainWindow):
         
         # установка иконки и титула
         self.setWindowIcon(QtGui.QIcon('apps.png'))
-        self.setWindowTitle(u'Прошивка DSP')
+        title = u'Прошивка DSP '
+        title += str(dsp.DSPhex())
+        self.setWindowTitle(title)
         
         # 
         self.pSave = QtGui.QPushButton(u'Сохранить')
