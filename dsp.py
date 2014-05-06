@@ -1,26 +1,86 @@
 # -*- coding: utf-8 -*-
 import sys
+import os
 import my_func
 
-VERSION = "1.02"
 
+#####
 class DSPhex():
-    def __init__(self, freq=100, num=1, device='P400'):
-        ''' (int, int, str) -> None
+    VERSION = u"1.03"
+    FIRMWARE = {
+                    u'Р400' : { '1v36' : 'P400_1v36',
+                                '1v34' : 'P400_1v34',
+                                '1v30' : 'P400_1v30'
+                             },
+                    u'РЗСК' : {
+                                '1v30' : 'RZSK_1v30'
+                             },
+#                    u'К400' : (
+#                              ('1.xx', 'K400_old')
+#                              )
+                }
+    DIR_DATA = "data/"
+    EXT_DATA = ".dat"
+    DIR_HEX = "hex/"
+    
+    _device = None;
+    _freq = None;
+    _num = None;
+    _version = None;
+    
+#####
+    def __init__(self, freq=100, num=1, device=u'Р400'):
+        ''' (self, int, int, str) -> None
 
             freq - частота в кГц
             num - номер аппарата, 1..3
             source - файл исходной прошивки
         '''
-        self.DEVICE = ('P400', 'RZSK', 'K400')
-        
         self.setFrequence(freq)
         self.setNumber(num)
         self.setDevice(device)  
         
+#####     
     def __str__(self):
-        return VERSION
-                
+        ''' (self) -> str
+        
+            Возвращает версию программы.
+        '''
+        return self.VERSION    
+        
+#####
+    def getVersions(self, device=None):
+        ''' (self, str) -> list of str
+            
+            Возвращает список возможных версий прошивок для заданного типа
+            аппарата, упорядоченный по убыванию.
+            В случае ошибочного типа возвращается пустой список.
+        '''
+        versions = []
+        
+        if device is None:
+            device = self._device
+            
+        device = unicode(device)
+        if self.FIRMWARE.has_key(device):
+            versions = sorted(self.FIRMWARE[device], reverse = True)
+        return versions
+    
+#####
+    def setVersion(self, vers):
+        ''' (self, str) -> str
+            
+            Установка версии прошивки.
+            Возвращает установленную версию.
+        '''    
+        
+        if not self.FIRMWARE[self._device].has_key(vers):
+            raise ValueError(u"Ошибочное значение переменной 'vers'.")
+        
+        self._version = vers
+        return vers 
+               
+#####            
     def setFrequence(self, freq):
         ''' (self, str/number) -> int
 
@@ -32,17 +92,15 @@ class DSPhex():
         try:
             freq = int(freq)
         except:
-            print "Error:",
-            print u"Неверный тип переменной",  freq, type(freq)
-            raise TypeError
+            raise TypeError(u"Неверный тип переменной 'freq'.")
+        
         if freq < 16 or freq > 1000:     
-            print "Error:",
-            print u"Полученная частота выходит за диапазон [16, 1000]кГц: ",freq
-            raise ValueError
+            raise ValueError(u"Ошибочное значение переменной 'freq'.")
+        
         self._freq = freq
-
         return freq
 
+#####
     def setNumber(self, num):
         ''' (self, str/number) -> int
 
@@ -54,103 +112,120 @@ class DSPhex():
         try:
             num = int(num)
         except:
-            print "Error:",
-            print u"Неверный тип переменной", num, type(num)
-            raise TypeError
+            raise TypeError(u"Неверный тип переменной 'num'.")
+        
         if num < 1 or num > 3:
-            print "Error:",
-            print u"Полученный номер аппарата выходит за диапазон [1, 3]:",num
-            raise ValueError
+            raise ValueError(u"Ошибочное значение переменной 'num'.")
+        
         self._num = num
-
         return num
-
+    
+#####
+    def getDevices(self):
+        ''' (self) -> list of str
+        
+            Возвращает список аппаратов, для которых можно сформировать
+            прошивку, упорядоченный по возрастанию.
+        '''
+        return sorted(self.FIRMWARE)  
+    
+#####
     def setDevice(self, device):
         ''' (self, str) -> None
 
             Установка типа аппарата DEVICE.
             Возвращает установленный тип аппарата.
         '''
-        if not isinstance(device, str):
-            print u"Error:",
-            print u"Неверный тип переменной", device, type(device) 
-            raise TypeError
-        if not device in self.DEVICE:
-            print u"Error:"
-            print u"Ошибочное значение типа аппарата.", device
-            raise ValueError
-        self._device = device
+        if not isinstance(device, (str, unicode)):
+            raise TypeError(u"Неверный тип переменной 'device'.")
+        
+        if not device in self.FIRMWARE.keys():
+            raise ValueError(u"Ошибочное значение переменной 'device'.")
+        
+        # в случае смены аппарата, установим последнюю версию прошивки для него
+        
+        if self._device != device:
+            self._device = device
+            self.setVersion(self.getVersions(device) [0])
 
         return device
 
-    def saveNewHEX(self, source=None, name=None):
-        ''' (self, str, str) -> str
+#####
+    def saveNewHEX(self, name=None):
+        ''' (self, str) -> str
 
             Сохраниение файла прошивки с новыми параметрами. В случае если
             name не задано, сохраняется в текущий каталог с именем
-            %device_%freq_%num.hex. Можно задать свой текст прошивки source.
+            созданным на основе информации о версии прошивки, частоте и 
+            номере аппарата.
 
             В случае успешного сохранения, возвращает имя файла.
         '''
         device = self._device
         freq = self._freq
         num = self._num
+        vers = self._version
+        
+        self.loadSourceHEX()
+              
+        if device == u'Р400':
+            if vers == '1v36':
+                source = self.newP400_1v36()
+            elif vers == '1v34':
+                source = self.newP400_1v34()
+            elif vers == '1v30':
+                source = self.newP400_1v30()
+        elif device == u'РЗСК':
+            source = self.newRZSK_1v30()
         
         # формирование имени файла
         if name is None: 
-            name = "%s_%03d_%d.hex" % (device, freq, num)
-              
-        if device == 'P400':
-            source = self.newP400()
-        elif device == 'RZSK':
-            source = self.newRZSK()
+            name = unicode(self.DIR_HEX)
+            name += "%s_%03d_%d.hex" % (self.FIRMWARE[device] [vers], freq, num)
+        else:
+            name = unicode(name)
+            
         try:
+            # создание папки для прошивок, в случае ее отсутствия
+            if not os.path.exists(self.DIR_HEX):
+                os.makedirs(self.DIR_HEX)  
+                   
+            # сохранение файла прошивки
             f = open(name, 'wb')
             f.write(source)
             f.close()
-        except:
-            print u"Error:",
-            print u"Ошибка сохранения файла прошивки:", name, type(name)
-            raise IOError
-        print u'Файл сохранен успешно', name
+        except Exception as inst:
+            raise IOError(inst)
         
+        print u'Файл сохранен успешно', name
         return name
         
-    def loadSourceHEX(self, device=None, name=None):
-        ''' (self, str, str) -> str
+#####  
+    def loadSourceHEX(self):
+        ''' (self) -> str
 
-            Загрузка исходного файла прошивки в _source. В случае если name не
-            задано загружается файл соответсвующий выбранному типу устройства.
-            device должен быть значением из DEVICE.
+            Загрузка исходного файла прошивки в _source. 
             В случае успешной загрузки, возвращает имя файла.
         '''
-        # загрузка файла в зависимости от типа аппарата
-        if name is None:
-            if device is None:
-                device = self._device
         
-        if device in self.DEVICE:
-            if device == 'RZSK':
-                # для упрощения кода в РЗСК загружается исходник 1 или 2 аппарата
-                name = device + '_' + str(self._num) + '.dat'
-            else:
-                name = device + '.dat'
-        else:
-            print u"Error: ",
-            print u"Неверно задан тип аппарата: ", device
-        
+        # выбор исходного файла прошивки на основании уставок
+        name = self.DIR_DATA
+        name += self.FIRMWARE[self._device][self._version]
+        name += '_' + str(self._num)
+        name += self.EXT_DATA
+            
         try:
+            name = unicode(name)
             f = open(name, 'rb')
             self._source = f.read()
         except:
-            print u"Error:",
-            print u"Ошибка открытия исходного файла прошивки."
-            print u'Проверьте наличие файла "P400.dat".'
-            raise IOError
+            print name
+            raise IOError(u"Ошибка открытия исходного файла прошивки.")
         
         return name
 
-    def newP400(self, source=None, freq=None, num=None):
+#####
+    def newP400_1v30(self, source=None, freq=None, num=None):
         ''' (str) -> sr
 
             Формирование нового файла прошивки для Р400.
@@ -170,6 +245,7 @@ class DSPhex():
         # строка '1BD0' зависит от частоты
         # (fr) xx xx xx xx xx xx
         
+        #####       
         def calcCrc1(freq, num):
             val = freq * 32
             if num == 1:
@@ -185,7 +261,8 @@ class DSPhex():
                 val = '0' + val
             val = val[2:] + val[:2]
             return val
-
+        
+        #####
         def calcCrc2(freq, num):
             val = freq * 8
             if num == 1:
@@ -201,7 +278,8 @@ class DSPhex():
                 val = '0' + val
             val = val[2:] + val[:2]
             return val
-
+        
+        #####
         def calcFreq(val):
             val = val = "%02x0" % val
             if len(val) < 4:
@@ -219,10 +297,12 @@ class DSPhex():
             source = self._source
 
         # зависимости только от номера аппарата
-        for key in self.P400:
-            adr = my_func.strHexToInt(key)
-            tmp = self.P400[key][num - 1].decode('hex')
-            source = source[:adr] + tmp + source[adr + len(tmp):]
+        # на данный момент не используется, а берутся два разных
+        # исходника прошивок
+#        for key in self.P400:
+#            adr = my_func.strHexToInt(key)
+#            tmp = self.P400[key][num - 1].decode('hex')
+#            source = source[:adr] + tmp + source[adr + len(tmp):]
 
         # строка '1BD0' зависит от частоты
         fr = calcFreq(freq).decode('hex')
@@ -237,8 +317,9 @@ class DSPhex():
         source = source[:adr] + crc1 + crc2 + source[adr + len(crc1) + len(crc2):]
 
         return source
-                
-    def newRZSK(self, source=None, freq=None, num=None):
+             
+    #           
+    def newRZSK_1v30(self, source=None, freq=None, num=None):
         ''' (dsphex, str, int, int)
         
             Формирование нового файла прошивки для РЗСК.
@@ -247,49 +328,37 @@ class DSPhex():
             Возвращает содержимое нового файла прошивки.
         '''
         
+        #####
         def calcCrc1(freq, num):
             ''' (int, int) -> int
-            
                 Возвращает контрольную сумму в зависимости от номера аппарата
                 и частоты.
-            '''
-            
+            '''   
             if (num == 1):
                 crc = -39
             elif (num == 2):
                 crc = 38
-            inc = 32
-            
-            crc += inc * freq 
-            return crc
+            return crc + 32*freq
         
+        #####
         def calcCrc2(freq, num):
             ''' (int, int) -> int
-            
                 Возвращает контрольную сумму в зависимости от номера аппарата
                 и частоты.
             '''
-            
             if (num == 1):
                 crc = 9
             elif (num == 2):
                 crc = -10    
-            inc = 8
-            
-            crc += inc * freq
-            return crc
+            return crc + 8*freq
         
+        #####
         def calcFreq(freq):
             ''' (int) -> int
-                
                 Возвращает число соовтетствующее заданной частоте.
             '''
-            
-            val = 0
-            inc = 16
-            
-            val += inc * freq
-            return val
+            return 16 * freq
+        
         
         if freq is None:
             freq = self._freq
@@ -321,6 +390,7 @@ class DSPhex():
         
         return source
         
+#       
 if __name__ == '__main__':
     ''' Создание файла прошивки с заданной частотой и номером. По умолчанию
         будет создана прошивка 100кГц-1
