@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file>icons/Apps.png</file>
+    <file>icons/Negative.png</file>
+  </qresource>
+</RCC>

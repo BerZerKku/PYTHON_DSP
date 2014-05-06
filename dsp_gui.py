@@ -7,6 +7,7 @@ from PyQt4 import Qt
 
 import dsp
 import my_func
+import resources_rc
 
 #
 class DSPGui(QtGui.QMainWindow):
@@ -17,8 +18,7 @@ class DSPGui(QtGui.QMainWindow):
         # Windows, WindowsXP, Motif, CDE, Plastique, Cleanlooks
         QtGui.QApplication.setStyle('Cleanlooks')
         
-        self.center()
-        
+        self.setMinimumWidth(300)
         # запрет изменения размеров формы
         flag = QtCore.Qt.Window
         flag |= QtCore.Qt.MSWindowsFixedSizeDialogHint
@@ -29,9 +29,8 @@ class DSPGui(QtGui.QMainWindow):
         self.setCentralWidget(self.mainWidget)
         
         # установка иконки и титула
-        self.setWindowIcon(QtGui.QIcon('apps.png'))
-        title = u'Прошивка DSP'
-        title += str(dsp.DSPhex())
+        self.setWindowIcon(QtGui.QIcon(':icons/Apps.png'))
+        title = u'Прошивка DSP ' + str(dsp.DSPhex())
         self.setWindowTitle(title)
         
         # 
@@ -74,7 +73,15 @@ class DSPGui(QtGui.QMainWindow):
         grid.addWidget(self.eNum, 3, 1)
         grid.addWidget(self.pSave, 4, 0)
         grid.addWidget(self.pSaveAs, 4, 1)
-    
+        
+        a = self.sizeHint()
+        print a.height(), a.width()
+        b = self.size()
+        print b.height(), b.width()
+        
+        self.center()
+        self.show()
+        
     #
     def center(self):
         ''' (self) -> None

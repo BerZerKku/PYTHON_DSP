@@ -6,7 +6,7 @@ import my_func
 
 #####
 class DSPhex():
-    VERSION = u"1.03"
+    VERSION = u"1v03"
     FIRMWARE = {
                     u'Р400' : { '1v36' : 'P400_1v36',
                                 '1v34' : 'P400_1v34',

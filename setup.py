@@ -7,12 +7,15 @@ from glob import glob
 
 
 # подключение библиотек Visual Studio
-sys.path.append("D:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT")
-data_files = [("Microsoft.VC90.CRT", glob(r'D:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\*.*'))]
+#sys.path.append("D:\\Program Files\\Microsoft Visual Studio 9.0\\VC\\redist\\x86\\Microsoft.VC90.CRT")
+#data_files = [("Microsoft.VC90.CRT", glob(r'D:\Program Files\Microsoft Visual Studio 9.0\VC\redist\x86\Microsoft.VC90.CRT\*.*'))]
+sys.path.append("D:\\work\\Python\\Distr\\!setup\\toExe\\Microsoft.VC90.CRT")
+data_files = [("Microsoft.VC90.CRT", glob(r'D:\work\Python\Distr\!setup\toExe\Microsoft.VC90.CRT\*.*'))]
+
 
 # подключение своих файлов
 # где 'data' - каталог в который будут скопированы файлы
-mydata_files = ('data', ["Apps.png"])
+mydata_files = ('data', [])
 # добавление всего содержимого папки 'data/'
 for files in os.listdir('data/'):
     mydata_files[1].append('data/' + files)
@@ -30,7 +33,7 @@ setup(
 	#dll_excludes=['w9xpopen.exe'],
 	# windows - GUI (может быть console)
 	# icon_resources -> установка иконки для скомпилированного проекта
-    windows=[{"script":"dsp_gui.py", "icon_resources": [(1, "Apps_24x24.ico")]}],
+    windows=[{"script":"dsp_gui.py", "icon_resources": [(1, "icons/Apps_24x24.ico")]}],
 	#
     #options={"py2exe": {"includes":["sip"]}}
 	options = {"py2exe": {"compressed": 2, 
