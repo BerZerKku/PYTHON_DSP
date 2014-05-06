@@ -51,15 +51,14 @@ class DSPGui(QtGui.QMainWindow):
         self.eNum = QtGui.QSpinBox()
         self.eNum.setRange(1, 2)
         
-        #
-        self.eDevice = QtGui.QComboBox()
-        self.eDevice.addItems(dsp.DSPhex().getDevices())
-        self.eDevice.setDisabled(False)
+        # доступные версии прошивок будут добавлены при выборе типа аппарата
+        self.eVersion = QtGui.QComboBox()
         
         #
-        self.eVersion = QtGui.QComboBox()
-        self.eVersion.addItems(dsp.DSPhex().getVersions())
-        self.eVersion.setDisabled(False)
+        self.eDevice = QtGui.QComboBox()
+        self.eDevice.currentIndexChanged.connect(self.refreshVersion)
+        self.eDevice.addItems(dsp.DSPhex().getDevices())
+        self.eDevice.setDisabled(False)    
         
         # 
         grid = QtGui.QGridLayout(self.mainWidget) 
@@ -74,13 +73,10 @@ class DSPGui(QtGui.QMainWindow):
         grid.addWidget(self.pSave, 4, 0)
         grid.addWidget(self.pSaveAs, 4, 1)
         
-        a = self.sizeHint()
-        print a.height(), a.width()
-        b = self.size()
-        print b.height(), b.width()
-        
         self.center()
         self.show()
+    
+    
         
     #
     def center(self):
@@ -125,6 +121,17 @@ class DSPGui(QtGui.QMainWindow):
                 return
         
         self.fileSave(name=name)
+    
+    #
+    def refreshVersion(self):
+        '''
+        '''
+        self.eVersion.clear()
+        device = self.eDevice.currentText()
+        self.eVersion.addItems(dsp.DSPhex().getVersions(device))
+        # если имеется больше одной версии прошивок, будет разрешен их выбор
+        self.eVersion.setEnabled(self.eVersion.count() > 1)
+
         
 #        
 if __name__ == '__main__':
