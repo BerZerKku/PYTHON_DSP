@@ -9,7 +9,7 @@
 #             На данный момент имеются:
 #                 - Р400
 #                     -# 1v36
-#                     -# 1v34c
+#                     -# 1v34c (режим совместимости, номер аппарата не важен)
 #                     -# 1v30
 #                 - Р400м
 #                     -# 1v34
@@ -46,9 +46,57 @@ def newP400_1v36(source, freq, num):
 def newP400_1v34c(source, freq, num):
     ''' (str, int, int) -> str
 
-        Корректирует файл прошивки версии 1v30c для Р400 для указанной частоты
-        и номера аппарата.
+        Корректирует файл прошивки версии 1v34c для Р400 для указанной частоты.
+        Номер аппарата не используется.
     '''
+
+    #
+    def calcFreq(freq):
+        ''' (int) -> int
+            
+        Вычисление КС для заданной частоты. 
+        '''
+        return 32 * freq
+
+    def calcCrc1(freq, num):
+        ''' (int, int) -> int
+            
+        Вычисление КС для заданной частоты. 
+        '''
+        return 32 * freq
+
+    def calcCrc2(freq, num):
+        ''' (int, int) -> int
+        
+            Вычисление КС для заданной частоты и номера аппарата.
+        '''
+        return 8 * freq
+
+    if not isinstance(source, str):
+        raise TypeError(u"Ошибочный тип данных 'str'", unicode(type(source)))
+
+    if not isinstance(freq, int):
+        raise TypeError(u"Ошибочный тип данных 'freq'", unicode(type(freq)))
+
+    if not isinstance(num, int):
+        raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
+
+
+    # два байта по адресу '1CDC' зависят от частоты
+    fr = my_func.intToStrHex(calcFreq(freq), 4, "le").decode('hex')
+    adr = my_func.strHexToInt('1CDC')
+    source = source[:adr] + fr + source[adr + len(fr):]
+
+    # два байта по адресу '5845' зависят от частоты
+    crc1 = my_func.intToStrHex(calcCrc1(freq, num), 4, "le").decode('hex')
+    adr = my_func.strHexToInt('5845')
+    source = source[:adr] + crc1 + source[adr + len(crc1):]
+
+    # два байта по адресу '5847' зависят от частоты
+    crc2 = my_func.intToStrHex(calcCrc2(freq, num), 4, "le").decode('hex')
+    adr = my_func.strHexToInt('5847')
+    source = source[:adr] + crc2 + source[adr + len(crc2):]
+
     return source
 
 #-----------------------------------------------------------------------------
@@ -58,14 +106,6 @@ def newP400_1v30(source, freq, num):
         Корректирует файл прошивки версии 1v30 для Р400 для указанной частоты
         и номера аппарата.
     '''
-
-    # массив изменяемых строк в заисисмости от номера аппарата
-    # значение словаря  зависит от номера аппарата [1, 2]
-#        self.P400 = {'1320': ['1310091210095048', '1210091310095048'],
-#                     '1378': ['0009131009121009', '0009121009131009'],
-#                     '1C88': ['8048980A01109080', '9048980A01109080'],
-#                     '1CA8': ['7598904898AF8006', '7598804898AF8006'],
-#                     '57B0': ['00010019700000FB', '00020019700000FB']}
     # строка '57D0' вычисляется относительно частоты и номера аппарата
     # xx (crc1) (crc2) xx xx xx (crc1, crc2 - двухбайтные)
     # строка '1BD0' зависит от частоты
@@ -121,14 +161,6 @@ def newP400_1v30(source, freq, num):
 
     if not isinstance(num, int):
         raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
-
-    # зависимости только от номера аппарата
-    # на данный момент не используется, а берутся два разных
-    # исходника прошивок
-#        for key in self.P400:
-#            adr = my_func.strHexToInt(key)
-#            tmp = self.P400[key][num - 1].decode('hex')
-#            source = source[:adr] + tmp + source[adr + len(tmp):]
 
     # строка '1BD0' зависит от частоты
     fr = calcFreq(freq).decode('hex')
@@ -191,20 +223,17 @@ def newP400m_1v34(source, freq, num):
         raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
 
     # два байта по адресу '1C49' зависят только от частоты
-    fr = my_func.intToStrHex(calcFreq(freq), 4, "le")
-    fr = fr.decode('hex')
+    fr = my_func.intToStrHex(calcFreq(freq), 4, "le").decode('hex')
     adr = my_func.strHexToInt('1C49')
     source = source[:adr] + fr + source[adr + len(fr):]
 
     # два байта по адресу '5892' зависят от частоты и номера аппарата
-    crc1 = my_func.intToStrHex(calcCrc1(freq, num), 4, "le")
-    crc1 = crc1.decode('hex')
+    crc1 = my_func.intToStrHex(calcCrc1(freq, num), 4, "le").decode('hex')
     adr = my_func.strHexToInt('5892')
     source = source[:adr] + crc1 + source[adr + len(crc1):]
 
     # два байта по адресу '5894' зависят от частоты и номера аппарата
-    crc2 = my_func.intToStrHex(calcCrc2(freq, num), 4, "le")
-    crc2 = crc2.decode('hex')
+    crc2 = my_func.intToStrHex(calcCrc2(freq, num), 4, "le").decode('hex')
     adr = my_func.strHexToInt('5894')
     source = source[:adr] + crc2 + source[adr + len(crc2):]
 
@@ -217,7 +246,6 @@ def newRZSK_1v30(source, freq, num):
         Корректирует файл прошивки версии 1v30 для РЗСК для указанной частоты
         и номера аппарата.
     '''
-
 
     def calcCrc1(freq, num):
         ''' (int, int) -> int
@@ -260,21 +288,15 @@ def newRZSK_1v30(source, freq, num):
     if not isinstance(num, int):
         raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
 
-    fr = my_func.intToStrHex(calcFreq(freq))
-    fr = fr[2:] + fr[:2]
-    fr = fr.decode('hex')
+    fr = my_func.intToStrHex(calcFreq(freq), 4, "le").decode('hex')
     adr = my_func.strHexToInt('4DE6')
     source = source[:adr] + fr + source[adr + len(fr):]
 
-    crc1 = my_func.intToStrHex(calcCrc1(freq, num))
-    crc1 = crc1[2:] + crc1[:2]
-    crc1 = crc1.decode('hex')
+    crc1 = my_func.intToStrHex(calcCrc1(freq, num), 4, "le").decode('hex')
     adr = my_func.strHexToInt('7C1E')
     source = source[:adr] + crc1 + source[adr + len(crc1):]
 
-    crc2 = my_func.intToStrHex(calcCrc2(freq, num))
-    crc2 = crc2[2:] + crc2[:2]
-    crc2 = crc2.decode('hex')
+    crc2 = my_func.intToStrHex(calcCrc2(freq, num), 4, "le").decode('hex')
     adr = my_func.strHexToInt('7C22')
     source = source[:adr] + crc2 + source[adr + len(crc2):]
 
@@ -483,7 +505,7 @@ class DSPhex():
         # вызов функции создания файла прошивки
         func = self.FIRMWARE[device] [vers] [1]
         try:
-            source = func (self._source, freq, num)
+            source = func(self._source, freq, num)
         except Exception as inst:
             text = u"Ошибка вызова функции создания новой прошивки: "
             text += unicode(func)
