@@ -1,2 +1,7 @@
 \build
 \tmp
+\hex
+\html
+\example_hex
+*.tmp
+*.log
