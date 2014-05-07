@@ -1,4 +1,4 @@
-# -*- coding: cp1251 -*-
+# -*- coding: utf-8 -*-
 import sys
 import struct
 
@@ -6,13 +6,13 @@ import struct
 def intToStrHex(val, num=None, arch="be"):
 	''' (int) -> str
 
-		Преобразование целого числа в строку HEX.
+		РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ С†РµР»РѕРіРѕ С‡РёСЃР»Р° РІ СЃС‚СЂРѕРєСѓ HEX.
 		
-		@param val преобразуемое число
-		@param num кол-во знаков, если None - то доводится до четного кол-ва
-		@param arch Архитектура платформы.
-		@arg "le" little-endian младшим байтов вперед
-		@arg "be" big-endian старшим байтом вперед
+		@param val РїСЂРµРѕР±СЂР°Р·СѓРµРјРѕРµ С‡РёСЃР»Рѕ
+		@param num РєРѕР»-РІРѕ Р·РЅР°РєРѕРІ, РµСЃР»Рё None - С‚Рѕ РґРѕРІРѕРґРёС‚СЃСЏ РґРѕ С‡РµС‚РЅРѕРіРѕ РєРѕР»-РІР°
+		@param arch РђСЂС…РёС‚РµРєС‚СѓСЂР° РїР»Р°С‚С„РѕСЂРјС‹.
+		@arg "le" little-endian РјР»Р°РґС€РёРј Р±Р°Р№С‚РѕРІ РІРїРµСЂРµРґ
+		@arg "be" big-endian СЃС‚Р°СЂС€РёРј Р±Р°Р№С‚РѕРј РІРїРµСЂРµРґ
 		
 		>>> intToStrHex(12)
 		'0C'
@@ -20,25 +20,25 @@ def intToStrHex(val, num=None, arch="be"):
 		'0800'
 	'''
 	if not isinstance(val, int):
-		txt = u"Error: Ошибочный тип данных,", type(val)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(val)
 		raise TypeError(txt)
-	
+
 	val = "%x" % val
-	
+
 	if num is None:
 		if len(val) % 2 == 1:
 			val = '0' + val
 	elif isinstance(num, int):
-		# если знаков не хватает, добавим ведущий ноль
+		# РµСЃР»Рё Р·РЅР°РєРѕРІ РЅРµ С…РІР°С‚Р°РµС‚, РґРѕР±Р°РІРёРј РІРµРґСѓС‰РёР№ РЅРѕР»СЊ
 		while len(val) < num:
 			val = '0' + val
-		# если знаков больше, уберем ведущие
+		# РµСЃР»Рё Р·РЅР°РєРѕРІ Р±РѕР»СЊС€Рµ, СѓР±РµСЂРµРј РІРµРґСѓС‰РёРµ
 		while len(val) > num:
 			val = val[1:]
 	else:
-		txt = u"Error: Ошибочный тип данных,", type(num)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(num)
 		raise TypeError(num)
-	
+
 	if arch == "be":
 		pass
 	elif arch == "le":
@@ -47,21 +47,21 @@ def intToStrHex(val, num=None, arch="be"):
 			tmp = val[i: i + 2] + tmp
 		val = tmp
 	else:
-		txt = u"Error: Выбрана неверная архитектура."
+		txt = u"Error: Р’С‹Р±СЂР°РЅР° РЅРµРІРµСЂРЅР°СЏ Р°СЂС…РёС‚РµРєС‚СѓСЂР°."
 		raise ValueError(txt)
-		
+
 	return val.upper()
 
 
 def strHexToInt(val, arch="be"):
 	''' (str) -> int
 
-		Преобразование строки HEX в целое число.
+		РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё HEX РІ С†РµР»РѕРµ С‡РёСЃР»Рѕ.
 		
-		@param val преобразуемая строка
-		@param arch Архитектура платформы.
-		@arg "le" little-endian младшим байтов вперед
-		@arg "be" big-endian старшим байтом вперед
+		@param val РїСЂРµРѕР±СЂР°Р·СѓРµРјР°СЏ СЃС‚СЂРѕРєР°
+		@param arch РђСЂС…РёС‚РµРєС‚СѓСЂР° РїР»Р°С‚С„РѕСЂРјС‹.
+		@arg "le" little-endian РјР»Р°РґС€РёРј Р±Р°Р№С‚РѕРІ РІРїРµСЂРµРґ
+		@arg "be" big-endian СЃС‚Р°СЂС€РёРј Р±Р°Р№С‚РѕРј РІРїРµСЂРµРґ
 
 		>>> strHexToInt("CC0")
 		3264
@@ -69,36 +69,36 @@ def strHexToInt(val, arch="be"):
 		18
 '''
 	if not isinstance(val, str):
-		txt = u"Error: Ошибочный тип данных,", type(val)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(val)
 		raise TypeError(txt)
-	
+
 	if arch == "be":
 		pass
 	elif arch == "le":
-		# добавление ведущего нуля, при необходимости
+		# РґРѕР±Р°РІР»РµРЅРёРµ РІРµРґСѓС‰РµРіРѕ РЅСѓР»СЏ, РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё
 		if len(val) % 2 == 1:
 			val = "0" + val
-		# переворот строки по 2 символа
+		# РїРµСЂРµРІРѕСЂРѕС‚ СЃС‚СЂРѕРєРё РїРѕ 2 СЃРёРјРІРѕР»Р°
 		tmp = ""
 		for i in range(0, len(val), 2):
 			tmp = val[i: i + 2] + tmp
 		val = tmp
 	else:
-		txt = u"Error: Выбрана неверная архитектура."
+		txt = u"Error: Р’С‹Р±СЂР°РЅР° РЅРµРІРµСЂРЅР°СЏ Р°СЂС…РёС‚РµРєС‚СѓСЂР°."
 		raise ValueError(txt)
-	
+
 	try:
 		val = int(val, 16)
 	except:
-		txt = u"Error: Ошибка преобразования."
+		txt = u"Error: РћС€РёР±РєР° РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ."
 		raise ValueError(txt)
-	
+
 	return val
 
 
 def charToStrHex(val):
 	''' (str) -> str
-		Преобразование символов в строку hex.
+		РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃРёРјРІРѕР»РѕРІ РІ СЃС‚СЂРѕРєСѓ hex.
 
 		>>> charToStrHex('1')
 		'31'
@@ -108,16 +108,16 @@ def charToStrHex(val):
 		'313233'
 	'''
 	if not isinstance(val, str):
-		txt = u"Error: Ошибочный тип данных,", type(val)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(val)
 		raise TypeError(txt)
-	
+
 	return val.encode('hex')
 
 
 def strHexToChar(val):
 	''' (str) -> str
 
-		Преобразование строки HEX в символы.
+		РџСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ СЃС‚СЂРѕРєРё HEX РІ СЃРёРјРІРѕР»С‹.
 
 		>>> strHexToChar('31')
 		'1'
@@ -127,25 +127,25 @@ def strHexToChar(val):
 		'123'
 	'''
 	if not isinstance(val, str):
-		txt = u"Error: Ошибочный тип данных,", type(val)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(val)
 		raise TypeError(txt)
-	
+
 	try:
 		val = val.decode('hex')
 	except:
-		txt = u"Error: Ошибка преобразования."
+		txt = u"Error: РћС€РёР±РєР° РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ."
 		raise ValueError(txt)
-	
+
 	return val
 
 
 def strHexToFloat(s, arch="be"):
 	''' (str) -> float
 		
-		Возвращает float полученный hex-cтрокой.
-		@param arch выбор архитектуры
-		@arg "le" little-endian младшим байтом вперед
-		@arg "be" big-endian старшим байтом вперед
+		Р’РѕР·РІСЂР°С‰Р°РµС‚ float РїРѕР»СѓС‡РµРЅРЅС‹Р№ hex-cС‚СЂРѕРєРѕР№.
+		@param arch РІС‹Р±РѕСЂ Р°СЂС…РёС‚РµРєС‚СѓСЂС‹
+		@arg "le" little-endian РјР»Р°РґС€РёРј Р±Р°Р№С‚РѕРј РІРїРµСЂРµРґ
+		@arg "be" big-endian СЃС‚Р°СЂС€РёРј Р±Р°Р№С‚РѕРј РІРїРµСЂРµРґ
 		
 		>>> strHexToFloat("41973333")
 		18.899999618530273
@@ -155,35 +155,35 @@ def strHexToFloat(s, arch="be"):
 		36806.078125
 	'''
 	if not isinstance(s, str):
-		txt = u"Error: Ошибочный тип данных,", type(s)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(s)
 		raise TypeError(txt)
-	
+
 	bins = ''.join(chr(int(s[x:x + 2], 16)) for x in range(0, len(s), 2))
-	
+
 	if arch == "le":
 		arch = '<f'
 	elif arch == "be":
 		arch = '>f'
 	else:
-		txt = u"Error: Выбрана неверная архитектура."
+		txt = u"Error: Р’С‹Р±СЂР°РЅР° РЅРµРІРµСЂРЅР°СЏ Р°СЂС…РёС‚РµРєС‚СѓСЂР°."
 		raise ValueError(txt)
-	
+
 	try:
 		val = struct.unpack(arch, bins)[0]
 	except:
-		txt = u"Error: Ошибка преобразования."
+		txt = u"Error: РћС€РёР±РєР° РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёСЏ."
 		raise ValueError(txt)
-	
+
 	return val
 
 
 def floatToStrHex(val, arch="be"):
 	''' (float) -> str
 
-		Возвращает float преобразованный в hex-строку.
-		@param arch выбор архитектуры
-		@arg "le" little-endian младшим байтом вперед
-		@arg "be" "big-endian" старшим байтом вперед
+		Р’РѕР·РІСЂР°С‰Р°РµС‚ float РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРЅС‹Р№ РІ hex-СЃС‚СЂРѕРєСѓ.
+		@param arch РІС‹Р±РѕСЂ Р°СЂС…РёС‚РµРєС‚СѓСЂС‹
+		@arg "le" little-endian РјР»Р°РґС€РёРј Р±Р°Р№С‚РѕРј РІРїРµСЂРµРґ
+		@arg "be" "big-endian" СЃС‚Р°СЂС€РёРј Р±Р°Р№С‚РѕРј РІРїРµСЂРµРґ
 		
 		>>> floatToStrHex(3.99)
 		"407f5c29"
@@ -193,30 +193,28 @@ def floatToStrHex(val, arch="be"):
 		"4142e148"
 	'''
 	if not isinstance(val, float):
-		txt = u"Error: Ошибочный тип данных,", type(val)
+		txt = u"Error: РћС€РёР±РѕС‡РЅС‹Р№ С‚РёРї РґР°РЅРЅС‹С…,", type(val)
 		raise TypeError(txt)
-	
+
 	if arch == "le":
 		arch = '<f'
 	elif arch == "be":
 		arch = '>f'
 	else:
-		txt = u"Error: Выбрана неверная архитектура."
+		txt = u"Error: Р’С‹Р±СЂР°РЅР° РЅРµРІРµСЂРЅР°СЏ Р°СЂС…РёС‚РµРєС‚СѓСЂР°."
 		raise ValueError(txt)
 	s = struct.pack(arch, val)
-	
+
 	return ''.join('%.2x' % ord(c) for c in s).upper()
-		
+
 if __name__ == '__main__':
 	args = sys.argv
 	for arg in args:
 		if arg == '/?':
-			print u'Справка:'
+			print u'РЎРїСЂР°РІРєР°:'
 
 
 import unittest
-
-
 class TestMyFunc(unittest.TestCase):
 	"""${short_summary_of_testcase}
 	"""
@@ -230,8 +228,9 @@ class TestMyFunc(unittest.TestCase):
 #       	"""
 #   	    pass  # skip tearDown
 	def testIntToStrHex(self):
-		""" (None) -> None
-			Проверка результата работы функции intToStrHex.
+		""" (self) -> None
+		
+			РџСЂРѕРІРµСЂРєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё intToStrHex.
 		"""
 		self.assertEqual(intToStrHex(12), '0C')
 		self.assertEqual(intToStrHex(12, num=4), '000C')
@@ -239,37 +238,38 @@ class TestMyFunc(unittest.TestCase):
 		self.assertEqual(intToStrHex(2049, num=2), '01')
 		self.assertEqual(intToStrHex(2049, arch="le"), '0108')
 		self.assertEqual
-		
+
 		self.assertRaises(TypeError, intToStrHex, "1")
 		self.assertRaises(TypeError, intToStrHex, 12, '12')
 		self.assertRaises(ValueError, intToStrHex, 12, None, "d")
 
 	def testStrHexToInt(self):
-		""" (None) -> None
-			Проверка результата работы функции strHexToInt.
+		""" (self) -> None
+		
+			РџСЂРѕРІРµСЂРєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё strHexToInt.
 		"""
 		self.assertEqual(strHexToInt("CC0"), 3264)
 		self.assertEqual(strHexToInt("CC0", "be"), 3264)
 		self.assertEqual(strHexToInt("12"), 18)
 		self.assertEqual(strHexToInt("0CC0", "le"), 49164)
-		
+
 		self.assertRaises(ValueError, strHexToInt, "CC0", "d")
 		self.assertRaises(TypeError, strHexToInt, 12)
 		self.assertRaises(ValueError, strHexToInt, ":1")
-	
+
 	def testCharToStrHex(self):
-		""" (None) -> None
-			Проверка результата работы функции charToStrHex.
+		""" (self) -> None
+			РџСЂРѕРІРµСЂРєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё charToStrHex.
 		"""
 		self.assertEqual(charToStrHex("1"), "31")
 		self.assertEqual(charToStrHex("A"), "41")
 		self.assertEqual(charToStrHex("123"), "313233")
-		
+
 		self.assertRaises(TypeError, charToStrHex, 12)
-	
+
 	def testStrHexToChar(self):
-		""" (None) -> None
-			Проверка результата работы функции strHexToChar.
+		""" (self) -> None
+			РџСЂРѕРІРµСЂРєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё strHexToChar.
 		"""
 		self.assertEqual(strHexToChar("31"), "1")
 		self.assertEqual(strHexToChar("41"), "A")
@@ -278,26 +278,28 @@ class TestMyFunc(unittest.TestCase):
 		self.assertRaises(TypeError, strHexToChar, 12)
 		self.assertRaises(ValueError, strHexToChar, "1")
 		self.assertRaises(ValueError, strHexToChar, ":1")
-	
+
 	def testHextoFloat(self):
-		""" (None) -> None
-			Проверка результата работы функции hexToFloat.
+		""" (self) -> None
+		
+			РџСЂРѕРІРµСЂРєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё hexToFloat.
 		"""
 		self.assertEqual(strHexToFloat("41973333"), 18.899999618530273)
 		self.assertEqual(strHexToFloat("41973333", "le"), 4.18142498403995e-08)
 		self.assertEqual(strHexToFloat("470FC614"), 36806.078125)
-		
+
 		self.assertRaises(TypeError, strHexToFloat, 12)
 		self.assertRaises(ValueError, strHexToFloat, "41973333", "d")
 		self.assertRaises(ValueError, strHexToFloat, ":70FC614")
-		
+
 	def testFloatToStrHex(self):
-		""" (None) -> None
-			Проверка результата работы функции floatToHex.
+		""" (self) -> None
+		
+			РџСЂРѕРІРµСЂРєР° СЂРµР·СѓР»СЊС‚Р°С‚Р° СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё floatToHex.
 		"""
 		self.assertEqual(floatToStrHex(3.99), "407F5C29")
 		self.assertEqual(floatToStrHex(3.99, "le"), "295C7F40")
 		self.assertEqual(floatToStrHex(12.18), "4142E148")
-		
+
 		self.assertRaises(TypeError, floatToStrHex, 12)
 		self.assertRaises(ValueError, floatToStrHex, 12.5, "d")

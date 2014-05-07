@@ -1,6 +1,6 @@
-#Wed May 07 15:37:18 GMT+06:00 2014
+#Wed May 07 17:32:14 GMT+06:00 2014
 eclipse.preferences.version=1
 encoding/dsp.py=utf-8
 encoding/dsp_gui.py=utf-8
 encoding/mainpage.py=utf-8
-encoding/my_func.py=cp1251
+encoding/my_func.py=utf-8
