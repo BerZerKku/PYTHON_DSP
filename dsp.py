@@ -5,11 +5,14 @@
 #  @brief     Создание файлов прошивки DSP для АВАНТ Р400, Р400м, РЗСК, К400.
 #  @details   Создание файла прошивки для для заданного типа аппарата, версии
 #             прошивки, частоты и номера.
-#             На данный момент потдерживаются:
+#
+#             На данный момент имеются:
 #                 - Р400
 #                     -# 1v36
-#                     -# 1v34
+#                     -# 1v34c
 #                     -# 1v30
+#                 - Р400м
+#                     -# 1v34
 #                 - РЗСК
 #                     -# 1v30
 #
@@ -40,14 +43,15 @@ def newP400_1v36(source, freq, num):
     return source
 
 #-----------------------------------------------------------------------------
-def newP400_1v34(source, freq, num):
+def newP400_1v34c(source, freq, num):
     ''' (str, int, int) -> str
 
-        Корректирует файл прошивки версии 1v30 для Р400 для указанной частоты
+        Корректирует файл прошивки версии 1v30c для Р400 для указанной частоты
         и номера аппарата.
     '''
     return source
 
+#-----------------------------------------------------------------------------
 def newP400_1v30(source, freq, num):
     ''' (str, int, int) -> str
 
@@ -141,6 +145,72 @@ def newP400_1v30(source, freq, num):
     return source
 
 #------------------------------------------------------------------------------
+def newP400m_1v34(source, freq, num):
+    ''' (str, int, int) -> str
+        
+        Корректирует файл прошивки версии 1v34 для Р400м для указанной частоты
+        и номера аппарата.
+    '''
+
+    def calcCrc1(freq, num):
+        ''' (int, int) -> int
+            
+        Вычисление КС для заданной частоты и номера аппарата. 
+        '''
+        if (num == 1):
+            crc = 64
+        elif (num == 2):
+            crc = -64
+        return crc + 32 * freq
+
+    def calcCrc2(freq, num):
+        ''' (int, int) -> int
+        
+            Вычисление КС для заданной частоты и номера аппарата.
+        '''
+        if (num == 1):
+            crc = -16
+        elif (num == 2):
+            crc = 16
+        return crc + 8 * freq
+
+    def calcFreq(freq):
+        ''' (int) -> int
+        
+            Вычисление значения для частоты.
+        '''
+        return 32 * freq
+
+    if not isinstance(source, str):
+        raise TypeError(u"Ошибочный тип данных 'str'", unicode(type(source)))
+
+    if not isinstance(freq, int):
+        raise TypeError(u"Ошибочный тип данных 'freq'", unicode(type(freq)))
+
+    if not isinstance(num, int):
+        raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
+
+    # два байта по адресу '1C49' зависят только от частоты
+    fr = my_func.intToStrHex(calcFreq(freq), 4, "le")
+    fr = fr.decode('hex')
+    adr = my_func.strHexToInt('1C49')
+    source = source[:adr] + fr + source[adr + len(fr):]
+
+    # два байта по адресу '5892' зависят от частоты и номера аппарата
+    crc1 = my_func.intToStrHex(calcCrc1(freq, num), 4, "le")
+    crc1 = crc1.decode('hex')
+    adr = my_func.strHexToInt('5892')
+    source = source[:adr] + crc1 + source[adr + len(crc1):]
+
+    # два байта по адресу '5894' зависят от частоты и номера аппарата
+    crc2 = my_func.intToStrHex(calcCrc2(freq, num), 4, "le")
+    crc2 = crc2.decode('hex')
+    adr = my_func.strHexToInt('5894')
+    source = source[:adr] + crc2 + source[adr + len(crc2):]
+
+    return source
+
+#------------------------------------------------------------------------------
 def newRZSK_1v30(source, freq, num):
     ''' (str, int, int) -> str
         
@@ -190,7 +260,6 @@ def newRZSK_1v30(source, freq, num):
     if not isinstance(num, int):
         raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
 
-     # строка '1BD0' зависит от частоты
     fr = my_func.intToStrHex(calcFreq(freq))
     fr = fr[2:] + fr[:2]
     fr = fr.decode('hex')
@@ -217,17 +286,18 @@ def newRZSK_1v30(source, freq, num):
 class DSPhex():
     ## Данные для создания прошивок.
     #  Название аппарата задается на русском языке, для упорядочивания списка.
+    #  'c' в версии прошивки Р400 означает работу в совместимости
     FIRMWARE = {
-                    u'Р400' : { '1v36' : ('P400_1v36', newP400_1v36),
-                                '1v34' : ('P400_1v34', newP400_1v34),
-                                '1v30' : ('P400_1v30', newP400_1v30)
-                             },
+                    u'Р400' : { '1v36'  : ('P400_1v36' , newP400_1v36),
+                                '1v34c' : ('P400_1v34c', newP400_1v34c),
+                                '1v30'  : ('P400_1v30' , newP400_1v30)
+                              },
+                    u'Р400м': {
+                                '1v34'  : ('P400m_1v34', newP400m_1v34)
+                              },
                     u'РЗСК' : {
-                                '1v30' : ('RZSK_1v30', newRZSK_1v30)
-                             },
-#                    u'К400' : (
-#                              ('1.xx', 'K400_old')
-#                              )
+                                '1v30'  : ('RZSK_1v30' , newRZSK_1v30)
+                              }
                 }
 
     ## Путь для файлов исходных прошивок.

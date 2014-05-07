@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 ##
-# \mainpage Прошивка DSP
+#   \mainpage Прошивка DSP
 #
-# This is a simple example of a mainpage you can create yourself.
-# Place this inside of a file called `mainpage.dox` and use doxygen.
-# If you specified `INPUT` or `FILE_PATTERNS` in your Doxyfile please
-# add `.dox` to your file patterns or `mainpage.dox` to your INPUT files.
+#   \section brief_sec Описание
+#
+#   Программа для создания файлов прошивки DSP аппаратов АВАНТ.
+#
+#   \section install_sec Установка
+#
+#   Программа не требует установки.
 #

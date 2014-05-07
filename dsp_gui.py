@@ -5,7 +5,7 @@
 #  @brief     Оболочка для создания файлов прошивки DSP аппаратов АВАНТ.
 #  @details   Создание файла прошивки для для заданного типа аппарата, версии
 #             прошивки, частоты и номера.
-#
+#             Написана на Python 2.7.
 #  @version   1.03
 #  @date      май 2014
 #  @author    Щеблыкин М.В.
@@ -63,7 +63,6 @@ class DSPGui(QtGui.QMainWindow):
         self.setWindowIcon(QtGui.QIcon(':icons/Apps.png'))
 #        # вывод версии файла dsp.py
 #        title = u'Прошивка DSP ' + str(dsp.DSPhex())
-        print dsp.DSPhex()
         # вывод версии GUI
         title = u"Прошивка DSP %s" % VERSION
         self.setWindowTitle(title)
