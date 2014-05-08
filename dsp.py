@@ -32,17 +32,73 @@ VERSION = u"1v03"
 import sys
 import os
 import my_func
+import unittest
 
-#------------------------------------------------------------------------------
+#
 def newP400_1v36(source, freq, num):
     ''' (str) -> sr
 
         Корректирует файл прошивки версии 1v36 для Р400 для указанной частоты
         и номера аппарата.
     '''
+    #
+    def calcFreq(freq):
+        ''' (int) -> int
+            
+        Вычисление КС для заданной частоты. 
+        '''
+        return 16 * freq
+
+    def calcCrc1(freq, num):
+        ''' (int, int) -> int
+            
+        Вычисление КС для заданной частоты. 
+        '''
+        if (num == 1):
+            crc = 64
+        elif (num == 2):
+            crc = -64
+        return crc + 32 * freq
+
+    def calcCrc2(freq, num):
+        ''' (int, int) -> int
+        
+            Вычисление КС для заданной частоты и номера аппарата.
+        '''
+        if (num == 1):
+            crc = -16
+        elif (num == 2):
+            crc = 16
+        return crc + 8 * freq
+
+    if not isinstance(source, str):
+        raise TypeError(u"Ошибочный тип данных 'str'", unicode(type(source)))
+
+    if not isinstance(freq, int):
+        raise TypeError(u"Ошибочный тип данных 'freq'", unicode(type(freq)))
+
+    if not isinstance(num, int):
+        raise TypeError(u"Ошибочный тип данных 'num'", unicode(type(num)))
+
+
+    # два байта  зависят от частоты
+    fr = my_func.intToStrHex(calcFreq(freq), 4, "le").decode('hex')
+    adr = my_func.strHexToInt('1BEB')
+    source = source[:adr] + fr + source[adr + len(fr):]
+
+    # два байта  зависят от частоты и номера аппарата
+    crc1 = my_func.intToStrHex(calcCrc1(freq, num), 4, "le").decode('hex')
+    adr = my_func.strHexToInt('57EC')
+    source = source[:adr] + crc1 + source[adr + len(crc1):]
+
+    # два байта  зависят от частоты и номера аппарата
+    crc2 = my_func.intToStrHex(calcCrc2(freq, num), 4, "le").decode('hex')
+    adr = my_func.strHexToInt('57EE')
+    source = source[:adr] + crc2 + source[adr + len(crc2):]
+
     return source
 
-#-----------------------------------------------------------------------------
+#
 def newP400_1v34c(source, freq, num):
     ''' (str, int, int) -> str
 
@@ -99,7 +155,7 @@ def newP400_1v34c(source, freq, num):
 
     return source
 
-#-----------------------------------------------------------------------------
+#
 def newP400_1v30(source, freq, num):
     ''' (str, int, int) -> str
 
@@ -176,7 +232,7 @@ def newP400_1v30(source, freq, num):
 
     return source
 
-#------------------------------------------------------------------------------
+#
 def newP400m_1v34(source, freq, num):
     ''' (str, int, int) -> str
         
@@ -239,7 +295,7 @@ def newP400m_1v34(source, freq, num):
 
     return source
 
-#------------------------------------------------------------------------------
+#
 def newRZSK_1v30(source, freq, num):
     ''' (str, int, int) -> str
         
@@ -302,8 +358,8 @@ def newRZSK_1v30(source, freq, num):
 
     return source
 
+#----------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
 ## Класс создания прошивки DSP АВАНТ.
 class DSPhex():
     ## Данные для создания прошивок.
@@ -329,24 +385,13 @@ class DSPhex():
     ## Путь для сохранения файлов прошивок.
     DIR_HEX = "hex/"
 
-    ## Тип аппарата.
-    _device = None;
-    ## Частота.
-    _freq = None;
-    ## Номер аппарата.
-    _num = None;
-    ## Версия прошивки.
-    _version = None;
-    ## Исходная прошивка
-    _source = None
-
     ## Максимальная частота.
     MAX_FREQ = 1000
     ## Минимальная частота.
     MIN_FREQ = 16
 
     #
-    def __init__(self, freq=100, num=1, device=u'Р400'):
+    def __init__(self, freq=100, num=1, device=u'Р400', version='1v36'):
         ''' (self, int, int, str) -> None
             
             Конструктор.
@@ -354,6 +399,17 @@ class DSPhex():
             @param num Номер аппарата.
             @param device Тип аппарата.
         '''
+        ## Тип аппарата.
+        self._device = device;
+        ## Частота.
+        self._freq = freq;
+        ## Номер аппарата.
+        self._num = num;
+        ## Версия прошивки.
+        self._version = version;
+        ## Исходная прошивка
+        self._source = None
+
         self.setFrequence(freq)
         self.setNumber(num)
         self.setDevice(device)
@@ -401,7 +457,7 @@ class DSPhex():
             raise ValueError(u"Ошибочное значение переменной 'vers'.")
 
         self._version = vers
-        return vers
+        return self._version
 
     #
     def setFrequence(self, freq):
@@ -424,7 +480,7 @@ class DSPhex():
             raise ValueError(u"Ошибочное значение переменной 'freq'.")
 
         self._freq = freq
-        return freq
+        return self._freq
 
     #
     def setNumber(self, num):
@@ -445,7 +501,7 @@ class DSPhex():
             raise ValueError(u"Ошибочное значение переменной 'num'.")
 
         self._num = num
-        return num
+        return self._num
 
     #
     def getDevices(self):
@@ -468,9 +524,7 @@ class DSPhex():
             @param device Версия аппарата.
             @return Установленная версию аппарата.
         '''
-        if not isinstance(device, (str, unicode)):
-            raise TypeError(u"Неверный тип переменной 'device'.")
-
+        device = unicode(device)
         if not device in self.FIRMWARE.keys():
             raise ValueError(u"Ошибочное значение переменной 'device'.")
 
@@ -480,7 +534,7 @@ class DSPhex():
             self._device = device
             self.setVersion(self.getVersions(device) [0])
 
-        return device
+        return self._device
 
     #
     def saveNewHEX(self, name=None):
@@ -594,3 +648,160 @@ if __name__ == '__main__':
         dspHEX.saveNewHEX()
     except:
         print u'Не удалось сохранить файл прошивки'
+
+#------------------------------------------------------------------------------
+
+class TestMyFunc(unittest.TestCase):
+    """${short_summary_of_testcase}
+    """
+
+    #
+    def setUp(self):
+        ''' (self) -> None
+        
+            Создание класса dsphex перед каждым тестом.
+        '''
+        self.dsphex = DSPhex()
+
+    #
+    def tearDown(self):
+        ''' (self) -> None
+        
+            Удаление dsphex после каждого теста
+        '''
+        self.dsphex = None
+
+    #
+    def testStr(self):
+        """ (self) -> None
+        
+            Проверка результата работы функции класса __str__.
+        """
+        self.assertEqual(str(self.dsphex), "Версия файла dsp.py %s" % VERSION)
+
+    #
+    def testGetDevices(self):
+        """(self) -> None
+        
+            Проверка результата работы функции класса getDevices.
+        """
+        devices = ['Р400', 'Р400м', 'РЗСК']
+        self.assertEqual(self.dsphex.getDevices(), devices)
+
+    #
+    def testSetDevice(self):
+        """(self) -> None
+        
+            Проверка результата работы функции класса setDevice.
+        """
+        # установка Р400
+        self.assertEqual(self.dsphex.setDevice('Р400'), 'Р400')
+        # установка Р400м
+        self.assertEqual(self.dsphex.setDevice('Р400м'), 'Р400м')
+        # установка РЗСК
+        self.assertEqual(self.dsphex.setDevice('РЗСК'), 'РЗСК')
+
+        # неизвестное имя устройства
+        self.assertRaises(ValueError, self.dsphex.setDevice, 'R400')
+
+    #
+    def testGetVersions(self):
+        """ (self) -> None
+        
+            Проверка результата работы функции класса getVersions.
+        """
+        # неизвестное имя устройства
+        self.assertEqual(self.dsphex.getVersions('R400'), [])
+        # список для устройства по умолчанию == Р400
+        vers = ['1v36', '1v34c', '1v30']
+        self.assertEqual(self.dsphex.getVersions(), vers)
+        # список для Р400
+        vers = ['1v36', '1v34c', '1v30']
+        self.assertEqual(self.dsphex.getVersions('Р400'), vers)
+        # список для устройства по умолчанию == Р400
+        self.assertEqual(self.dsphex.getVersions(), vers)
+        # список для Р400м
+        vers = ['1v34']
+        self.assertEqual(self.dsphex.getVersions('Р400м'), vers)
+        # список для РЗСК
+        vers = ['1v30']
+        self.assertEqual(self.dsphex.getVersions('РЗСК'), vers)
+
+    #
+    def testSetVersion(self):
+        """(self) -> None
+        
+            Проверка результата работы функции класса setVersion.
+        """
+        # установка версии для устройства по умолчанию == для Р400
+        self.assertEqual(self.dsphex.setVersion('1v34c'), '1v34c')
+        # установка версии для Р400
+        self.dsphex.setDevice('Р400')
+        self.assertEqual(self.dsphex.setVersion('1v30'), '1v30')
+        # установка версии для Р400м
+        self.dsphex.setDevice('Р400м')
+        self.assertEqual(self.dsphex.setVersion('1v34'), '1v34')
+        # установка версии для РЗСК
+        self.dsphex.setDevice('РЗСК')
+        self.assertEqual(self.dsphex.setVersion('1v30'), '1v30')
+
+        # неизвестная версия прошивки
+        self.assertRaises(ValueError, self.dsphex.setVersion, '1v29')
+
+    #
+    def testSetFrequence(self):
+        """(self) -> None
+        
+            Проверка результата работы функции класса setFrequence.
+        """
+        # минимальная частота
+        min = 16
+        # максимальная частота
+        max = 1000
+
+        # проверка установки минимального значения частоты
+        self.assertEqual(self.dsphex.setFrequence(min), min)
+        # проверка установки максимального значения частоты
+        self.assertEqual(self.dsphex.setFrequence(max), max)
+        # проверка установки промежуточной частоты
+        self.assertEqual(self.dsphex.setFrequence(731), 731)
+        # проверка установки частоты заданной строкой
+        self.assertEqual(self.dsphex.setFrequence("87"), 87)
+        # проверка установки частоты заданной 'float'
+        self.assertEqual(self.dsphex.setFrequence(19.4), 19)
+
+        # ошибочный тип данных на входе
+        self.assertRaises(TypeError, self.dsphex.setFrequence, "87.28")
+        # выход за диапазон вниз
+        self.assertRaises(ValueError, self.dsphex.setFrequence, min - 1)
+        # выход за диапазон вверх
+        self.assertRaises(ValueError, self.dsphex.setFrequence, max + 1)
+
+    #
+    def testSetNumber(self):
+        """(self) -> None
+        
+            Проверка результата работы функции класса setNumber.
+        """
+        # минимальный номер аппарата
+        min = 1
+        # максимальный номер аппарата
+        max = 2
+
+        # проверка установки минимального значения частоты
+        self.assertEqual(self.dsphex.setNumber(min), min)
+        # проверка установки максимального значения частоты
+        self.assertEqual(self.dsphex.setNumber(max), max)
+        # проверка установки промежуточной частоты
+        self.assertEqual(self.dsphex.setNumber(2), 2)
+        # проверка установки частоты заданной строкой
+        self.assertEqual(self.dsphex.setNumber("1"), 1)
+        # проверка установки частоты заданной 'float'
+        self.assertEqual(self.dsphex.setNumber(2.3), 2)
+
+        # ошибочный тип данных на входе
+        self.assertRaises(TypeError, self.dsphex.setNumber, "1.2")
+        # выход за диапазон вниз
+        self.assertRaises(ValueError, self.dsphex.setNumber, min - 1)
+        # выход за диапазон вверх
+        self.assertRaises(ValueError, self.dsphex.setNumber, max + 1)
